@@ -78,23 +78,45 @@
 
 #include <ccnx/common/ccnx_Name.h>
 
-extern PARCBuffer *makePayload(const CCNxName *interestName, const char *commandString);
-extern int ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *commandString);
+extern PARCBuffer *makePayload(const CCNxName *interestName, const char *dirPath);
+extern int ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *dirPath);
 extern void usage(void);
 
 PARCBuffer *
-makePayload(const CCNxName *interestName, const char *commandString)
+makePayload(const CCNxName *interestName, const char *dirPath)
 {
     char *commandToExecute;
 
     char *nameAsString = ccnxName_ToString(interestName);
-    int failure = asprintf(&commandToExecute, commandString, nameAsString);
+
+  int dirPathLen = strlen(dirPath);
+  int nameAsStringLen = strlen(nameAsString);
+
+  char *suffixInterestName = nameAsString;
+  int suffixInterestNameLen;
+  char *index = nameAsString;
+  while(*index != '\0') {
+    if(*index == '/')
+      suffixInterestName = index;
+    index++;
+  }
+  suffixInterestNameLen = strlen(suffixInterestName);
+  
+  int fileNameLen = dirPathLen + suffixInterestNameLen + 1;
+  char fileName[fileNameLen];
+  strcpy(fileName, dirPath);
+  strcpy(fileName + dirPathLen, suffixInterestName);
+  fileName[fileNameLen] = '\0';
+  //printf("fileName = %s\n", fileName);
+  
+  
+    int failure = asprintf(&commandToExecute, dirPath, nameAsString);
     assertTrue(failure > -1, "Error asprintf");
     parcMemory_Deallocate((void **) &nameAsString);
 
     PARCBufferComposer *accumulator = parcBufferComposer_Create();
 
-    FILE *fp = popen(commandToExecute, "r");
+    FILE *fp = fopen(fileName, "r");
     if (fp != NULL) {
         unsigned char buffer[1024];
 
@@ -105,7 +127,7 @@ makePayload(const CCNxName *interestName, const char *commandString)
         pclose(fp);
     } else {
         parcBufferComposer_PutString(accumulator, "Cannot execute: ");
-        parcBufferComposer_PutString(accumulator, commandString);
+        parcBufferComposer_PutString(accumulator, dirPath);
     }
 
     PARCBuffer *payload = parcBufferComposer_ProduceBuffer(accumulator);
@@ -115,7 +137,7 @@ makePayload(const CCNxName *interestName, const char *commandString)
 }
 
 int
-ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *commandString)
+ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *dirPath)
 {
     parcSecurity_Init();
 
@@ -137,7 +159,7 @@ ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *c
             if (interest != NULL) {
                 CCNxName *interestName = ccnxInterest_GetName(interest);
 
-                PARCBuffer *payload = makePayload(interestName, commandString);
+                PARCBuffer *payload = makePayload(interestName, dirPath);
 
                 CCNxContentObject *contentObject = ccnxContentObject_CreateWithNameAndPayload(interestName, payload);
 
@@ -186,7 +208,7 @@ main(int argc, char *argv[argc])
 {
     char *keystoreFile = NULL;
     char *keystorePassword = NULL;
-    char *commandString = "/bin/date";
+    char *dirPath = "~/";
     char *listenName = "lci:/Server";
 
     /* options descriptor */
@@ -235,8 +257,9 @@ main(int argc, char *argv[argc])
         usage();
         return -1;
     }
-    listenName = argv[0];
-    commandString = argv[1];
+    listenName = "lci:/";
+    dirPath = argv[1];
+    printf("dirPath = %s\n", argv[1]);
     argc += 2;
 
     PARCIdentityFile *identityFile = parcIdentityFile_Create(keystoreFile, keystorePassword);
@@ -251,7 +274,7 @@ main(int argc, char *argv[argc])
 
     CCNxName *name = ccnxName_CreateFromCString(listenName);
 
-    int result = ccnServe(identity, name, commandString);
+    int result = ccnServe(identity, name, dirPath);
 
     ccnxName_Release(&name);
 
