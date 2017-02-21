@@ -158,11 +158,15 @@ ccnServe(const PARCIdentity *identity, const CCNxName *listenName, const char *d
 
             if (interest != NULL) {
                 CCNxName *interestName = ccnxInterest_GetName(interest);
+		
+		if(ccnxInterest_HasMessageId(interest))
+		    printf("CCN Interest Message ID = %d\n", ccnxInterest_GetMessageId(interest));
 
                 PARCBuffer *payload = makePayload(interestName, dirPath);
 
                 CCNxContentObject *contentObject = ccnxContentObject_CreateWithNameAndPayload(interestName, payload);
-
+		ccnxContentObject_SetMessageId(contentObject, 7);
+		
                 CCNxMetaMessage *message = ccnxMetaMessage_CreateFromContentObject(contentObject);
                 if (ccnxPortal_Send(portal, message, CCNxStackTimeout_Never) == false) {
                     fprintf(stderr, "ccnxPortal_Write failed: %d\n", ccnxPortal_GetError(portal));

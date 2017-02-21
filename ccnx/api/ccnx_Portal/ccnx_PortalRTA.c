@@ -267,6 +267,8 @@ _ccnxPortalRTA_Stop(void *privateData)
 static bool
 _ccnxPortalRTA_Send(void *privateData, const CCNxMetaMessage *portalMessage, const CCNxStackTimeout *microSeconds)
 {
+    printf("Inside _ccnxPortalRTA_Send\n");
+    fflush(stdout);
     const _CCNxPortalRTAContext *transportContext = (_CCNxPortalRTAContext *) privateData;
 
     bool result = rtaTransport_Send(transportContext->rtaTransport, transportContext->fileId, portalMessage, microSeconds);

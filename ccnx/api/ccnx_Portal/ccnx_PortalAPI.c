@@ -104,6 +104,7 @@ _ccnxPortalAPI_Stop(void *privateData)
 static bool
 _ccnxPortalAPI_Send(void *privateData, const CCNxMetaMessage *portalMessage, const CCNxStackTimeout *microSeconds)
 {
+    printf("Inside _ccnxPortalAPI_Send\n");
     const _CCNxPortalAPIContext *transportContext = (_CCNxPortalAPIContext *) privateData;
 
     // Save the address of the portal message on our queue. We don't need to copy the whole message.

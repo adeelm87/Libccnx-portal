@@ -88,6 +88,7 @@ ccnGet(PARCIdentity *identity, CCNxName *name)
     assertNotNull(portal, "Expected a non-null CCNxPortal pointer.");
 
     CCNxInterest *interest = ccnxInterest_CreateSimple(name);
+    ccnxInterest_SetMessageId(interest, 6);
     ccnxName_Release(&name);
 
     CCNxMetaMessage *message = ccnxMetaMessage_CreateFromInterest(interest);
@@ -98,6 +99,9 @@ ccnGet(PARCIdentity *identity, CCNxName *name)
             if (response != NULL) {
                 if (ccnxMetaMessage_IsContentObject(response)) {
                     CCNxContentObject *contentObject = ccnxMetaMessage_GetContentObject(response);
+
+		    if(ccnxContentObject_HasMessageId(contentObject))
+			printf("CCN ContentObject Message ID = %d\n", ccnxContentObject_GetMessageId(contentObject));
 
                     PARCBuffer *payload = ccnxContentObject_GetPayload(contentObject);
 
