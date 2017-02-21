@@ -18,6 +18,9 @@ include( detectCacheSize )
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_C_FLAGS_NOPANTS "${CMAKE_C_FLAGS_NOPANTS} -O3 -DNDEBUG -DLibccnx_Portal_DISABLE_VALIDATION")
 
+include_directories(/usr/lib/jvm/java-8-openjdk-amd64/include)
+include_directories(/usr/lib/jvm/java-8-openjdk-amd64/include/linux)
+
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/ccnx/api/ccnx_Portal)
 
 include_directories($ENV{CCNX_DEPENDENCIES}/include)
